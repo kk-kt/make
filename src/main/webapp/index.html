@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>chatGPT API</title>
+  <meta charset="UTF-8">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    h1 {
+      margin-bottom: 20px;
+    }
+
+    #container {
+      text-align: center;
+    }
+
+    #result {
+      margin-top: 20px;
+      font-size: 18px;
+      text-align: center;
+    }
+
+    /* page-loading */
+    #loading {
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      position: fixed;
+      display: block;
+      opacity: 0.6;
+      background: #e4e4e4;
+      z-index: 99;
+      text-align: center;
+    }
+
+    #loading>img {
+      position: absolute;
+      top: 40%;
+      left: 45%;
+      z-index: 100;
+    }
+
+    #loading>p {
+      position: absolute;
+      top: 57%;
+      left: 43%;
+      z-index: 101;
+    }
+
+    .options {
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    label {
+      margin-right: 10px;
+    }
+
+    select,
+    input,
+    button {
+      height: 30px;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="container">
+    <h1>chatGPT API</h1>
+    <div>밥 메뉴추천 AI !!</div>
+
+    <div class="options">
+      <label>재료 종류:</label>
+      <input type="text" id="ingredients" name="ingredients" placeholder="재료를 입력하세요">
+    </div>
+
+    <div class="options">
+      <label>만드는 시간:</label>
+      <select id="location" name="location">
+        <option value="10분">10분</option>
+        <option value="20분">20분</option>
+        <option value="30분">30분</option>
+        <option value="1시간">1시간</option>
+      </select>
+    </div>
+
+    <button onclick="chatGPT()">입력</button>
+    <div id="result"></div>
+  </div>
+
+  <div id="loading">
+    <img src="https://studentrights.sen.go.kr/images/common/loading.gif">
+  </div>
+  <script>
+    $(document).ready(function () {
+      $('#loading').hide();
+    });
+
+    function validateSelection() {
+      const ingredients = $('#ingredients').val() !== '';
+
+      if (!ingredients) {
+        alert("재료를 입력해주세요.");
+        return false;
+      }
+
+      return true;
+    }
+
+    function chatGPT() {
+      const api_key = " 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"  // <- API KEY 입력
+
+      if (!validateSelection()) {
+        return;
+      }
+
+      const ingredients = $('#ingredients').val();
+      const location = $('#location').val();
+
+      $('#loading').show();
+
+      const messages = [
+        { role: 'system', content: 'You are a helpful assistant.' },
+        {
+          role: 'user',
+          content: '재료 종류: 가 이렇게있어 ' + ingredients +
+            ' / 만드는 시간: ' + location + ' 은 이정도가 가능한데 이 재료로 만들수있는 요리와 레시피를 3개정도 자세히 알려줘'
+        },
+      ];
+
+      const data = {
+        model: 'gpt-3.5-turbo',
+        temperature: 0.5,
+        n: 1,
+        messages: messages,
+      };
+
+      $.ajax({
+        url: "https://api.openai.com/v1/chat/completions",
+        method: 'POST',
+        headers: {
+          Authorization: "Bearer " + api_key,
+          'Content-Type': 'application/json',
+        },
+        data: JSON.stringify(data),
+      }).then(function (response) {
+        $('#loading').hide();
+        console.log(response);
+        let result = document.getElementById('result');
+        let pre = document.createElement('pre');
+
+        pre.innerHTML = response.choices[0].message.content;
+        result.innerHTML = '';
+        result.appendChild(pre);
+
+        $('#ingredients').val('');
+        $('#location').val('');
+      });
+    }
+  </script>
+</body>
+
+</html>
